@@ -12,6 +12,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
+
+private val logger = LoggerFactory.getLogger("spredning.Server")
+private val TEAM_LOG = MarkerFactory.getMarker("TEAM_LOGS")
+
 private val objectMapper = jacksonObjectMapper()
 
 data class SendRequest(
@@ -80,19 +86,18 @@ fun startServer(port: Int = 8080) {
                 val feil = mutableListOf<String>()
 
                 for (mottaker in mottakere) {
-                    val maskertFnr = mottaker.fnr.take(6) + "*****"
                     try {
                         val pdfBytes = PdfGenerator.generer(mottaker, req.tittel, req.melding)
                         val journalpostId = dokarkivKlient.journalfør(mottaker, pdfBytes, req.tittel, req.brevkode)
                         val bestillingsId = dokdistKlient.distribuer(journalpostId)
                         antallSendt++
-                        log.info("Sendt brev til {} — journalpostId={} bestillingsId={}", maskertFnr, journalpostId, bestillingsId)
+                        logger.info(TEAM_LOG, "Sendt brev til {} — journalpostId={} bestillingsId={}", {mottaker.fnr}, journalpostId, bestillingsId)
                     } catch (e: MottakerErDødException) {
-                        log.warn("Hopper over {} — mottaker er registrert død: {}", maskertFnr, e.message)
-                        feil.add("$maskertFnr: mottaker er registrert død")
+                        logger.warn(TEAM_LOG, "Feilet sending til {} — mottaker er registrert død: {}", {mottaker.fnr}, e.message)
+                        feil.add("${mottaker.fnr}: mottaker er registrert død")
                     } catch (e: Exception) {
-                        log.error("Feil ved sending til {}: {}", maskertFnr, e.message, e)
-                        feil.add("$maskertFnr: ${e.message}")
+                        logger.error(TEAM_LOG, "Feilet sending til {}: {}", {mottaker.fnr}, e.message)
+                        feil.add("${mottaker.fnr}: ${e.message}")
                     }
                 }
 
