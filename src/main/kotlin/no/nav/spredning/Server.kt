@@ -7,6 +7,7 @@ import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -18,7 +19,21 @@ data class SendRequest(
     val brevkode: String,
     val melding: String,
     val csv: String,
-)
+) {
+    fun validate() {
+        if (tittel.isBlank() || melding.isBlank() || csv.isBlank()) {
+            throw IllegalArgumentException("tittel, melding og csv er påkrevd")
+        }
+    }
+
+    fun parseMottakere(): List<Mottaker> {
+        val mottakere = CsvLeser.les(csv)
+        if (mottakere.isEmpty()) {
+            throw IllegalArgumentException("CSV inneholder ingen mottakere")
+        }
+        return mottakere
+    }
+}
 
 data class SendResultat(
     val antallSendt: Int,
@@ -33,6 +48,11 @@ fun startServer(port: Int = 8080) {
 
     embeddedServer(CIO, port = port) {
         install(ContentNegotiation) { jackson() }
+        install(StatusPages) {
+            exception<IllegalArgumentException> { call, cause ->
+                call.respond(HttpStatusCode.BadRequest, cause.message ?: "Ugyldig forespørsel")
+            }
+        }
 
         routing {
             get("/isAlive") { call.respond(HttpStatusCode.OK, "OK") }
@@ -45,42 +65,16 @@ fun startServer(port: Int = 8080) {
 
             post("/forhåndsvis") {
                 val req = call.receive<SendRequest>()
-
-                if (req.tittel.isBlank() || req.melding.isBlank() || req.csv.isBlank()) {
-                    call.respond(HttpStatusCode.BadRequest, "tittel, melding og csv er påkrevd")
-                    return@post
-                }
-
-                val mottakere = try {
-                    CsvLeser.les(req.csv)
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message ?: "Ugyldig CSV")
-                    return@post
-                }
-
-                if (mottakere.isEmpty()) {
-                    call.respond(HttpStatusCode.BadRequest, "CSV inneholder ingen mottakere")
-                    return@post
-                }
-
+                req.validate()
+                val mottakere = req.parseMottakere()
                 val pdfBytes = PdfGenerator.generer(mottakere.first(), req.tittel, req.melding)
                 call.respondBytes(pdfBytes, ContentType.Application.Pdf)
             }
 
             post("/send") {
                 val req = call.receive<SendRequest>()
-
-                if (req.tittel.isBlank() || req.brevkode.isBlank() || req.melding.isBlank() || req.csv.isBlank()) {
-                    call.respond(HttpStatusCode.BadRequest, "tittel, brevkode, melding og csv er påkrevd")
-                    return@post
-                }
-
-                val mottakere = try {
-                    CsvLeser.les(req.csv)
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message ?: "Ugyldig CSV")
-                    return@post
-                }
+                req.validate()
+                val mottakere = req.parseMottakere()
 
                 var antallSendt = 0
                 val feil = mutableListOf<String>()
@@ -112,5 +106,3 @@ fun startServer(port: Int = 8080) {
         }
     }.start(wait = true)
 }
-
-private object Server
