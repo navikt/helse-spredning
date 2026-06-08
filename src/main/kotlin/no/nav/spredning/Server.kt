@@ -2,9 +2,11 @@ package no.nav.spredning
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -30,6 +32,8 @@ fun startServer(port: Int = 8080) {
     val dokdistKlient = DokdistFordelingKlient(tokenKlient = tokenKlient)
 
     embeddedServer(CIO, port = port) {
+        install(ContentNegotiation) { jackson() }
+
         routing {
             get("/isAlive") { call.respond(HttpStatusCode.OK, "OK") }
             get("/isReady") { call.respond(HttpStatusCode.OK, "OK") }
@@ -64,19 +68,15 @@ fun startServer(port: Int = 8080) {
             }
 
             post("/send") {
-                val params = call.receiveParameters()
-                val tittel = params["tittel"]?.trim().orEmpty()
-                val brevkode = params["brevkode"]?.trim().orEmpty()
-                val melding = params["melding"]?.trim().orEmpty()
-                val csv = params["csv"]?.trim().orEmpty()
+                val req = call.receive<SendRequest>()
 
-                if (tittel.isBlank() || brevkode.isBlank() || melding.isBlank() || csv.isBlank()) {
+                if (req.tittel.isBlank() || req.brevkode.isBlank() || req.melding.isBlank() || req.csv.isBlank()) {
                     call.respond(HttpStatusCode.BadRequest, "tittel, brevkode, melding og csv er påkrevd")
                     return@post
                 }
 
                 val mottakere = try {
-                    CsvLeser.les(csv)
+                    CsvLeser.les(req.csv)
                 } catch (e: IllegalArgumentException) {
                     call.respond(HttpStatusCode.BadRequest, e.message ?: "Ugyldig CSV")
                     return@post
@@ -88,8 +88,8 @@ fun startServer(port: Int = 8080) {
                 for (mottaker in mottakere) {
                     val maskertFnr = mottaker.fnr.take(6) + "*****"
                     try {
-                        val pdfBytes = PdfGenerator.generer(mottaker, tittel, melding)
-                        val journalpostId = dokarkivKlient.journalfør(mottaker, pdfBytes, tittel, brevkode)
+                        val pdfBytes = PdfGenerator.generer(mottaker, req.tittel, req.melding)
+                        val journalpostId = dokarkivKlient.journalfør(mottaker, pdfBytes, req.tittel, req.brevkode)
                         val bestillingsId = dokdistKlient.distribuer(journalpostId)
                         antallSendt++
                         log.info("Sendt brev til {} — journalpostId={} bestillingsId={}", maskertFnr, journalpostId, bestillingsId)
