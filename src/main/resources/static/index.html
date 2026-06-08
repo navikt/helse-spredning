@@ -171,21 +171,26 @@
     statusEl.innerHTML = '';
   }
 
-  function samlFormData() {
-    const data = new FormData();
-    data.append('tittel', document.getElementById('tittel').value);
-    data.append('brevkode', document.getElementById('brevkode').value);
-    data.append('melding', document.getElementById('melding').value);
-    data.append('csv', document.getElementById('csv').value);
-    return data;
+  function samlData() {
+    return {
+      tittel: document.getElementById('tittel').value,
+      brevkode: document.getElementById('brevkode').value,
+      melding: document.getElementById('melding').value,
+      csv: document.getElementById('csv').value,
+    };
   }
+
+  const jsonHeaders = { 'Content-Type': 'application/json' };
 
   document.getElementById('btn-preview').addEventListener('click', async () => {
     skjulStatus();
-    const data = samlFormData();
 
     try {
-      const resp = await fetch('/forhåndsvis', { method: 'POST', body: new URLSearchParams(data) });
+      const resp = await fetch('/forhåndsvis', {
+        method: 'POST',
+        headers: jsonHeaders,
+        body: JSON.stringify(samlData()),
+      });
       if (!resp.ok) {
         const tekst = await resp.text();
         visStatus('Kunne ikke generere forhåndsvisning: ' + tekst, 'error');
@@ -211,10 +216,12 @@
 
     visStatus('Sender brev…', 'info');
 
-    const data = samlFormData();
-
     try {
-      const resp = await fetch('/send', { method: 'POST', body: new URLSearchParams(data) });
+      const resp = await fetch('/send', {
+        method: 'POST',
+        headers: jsonHeaders,
+        body: JSON.stringify(samlData()),
+      });
       const tekst = await resp.text();
 
       if (!resp.ok) {
