@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spredning – send brev</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      background: #f5f5f5;
+      color: #222;
+      margin: 0;
+      padding: 32px 16px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 32px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0 0 24px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    button {
+      padding: 10px 22px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button[type="submit"] {
+      background: #0067c5;
+      color: #fff;
+    }
+
+    button[type="submit"]:hover { background: #0054a0; }
+
+    #btn-preview {
+      background: #f0f0f0;
+      color: #333;
+      border: 1px solid #bbb;
+    }
+
+    #btn-preview:hover { background: #e0e0e0; }
+
+    #status {
+      margin-top: 24px;
+      padding: 14px 16px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    #status.success { background: #dff0d8; border: 1px solid #3c763d; color: #3c763d; }
+    #status.error   { background: #f2dede; border: 1px solid #a94442; color: #a94442; }
+    #status.info    { background: #d9edf7; border: 1px solid #31708f; color: #31708f; }
+
+    ul.feil { margin: 8px 0 0; padding-left: 20px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Send brev via spredning</h1>
+
+  <form id="form">
+    <div class="field">
+      <label for="tittel">Brevtittel</label>
+      <input type="text" id="tittel" name="tittel" required placeholder="F.eks. For mye utbetalt i feriepenger" />
+    </div>
+
+    <div class="field">
+      <label for="brevkode">Brevkode</label>
+      <input type="text" id="brevkode" name="brevkode" required placeholder="F.eks. NAV 04-16.04" />
+    </div>
+
+    <div class="field">
+      <label for="melding">Melding (HTML)</label>
+      <div class="hint">
+        Skriv inn HTML-innhold for brevets brødtekst. Bruk <code>${1}</code>, <code>${2}</code> osv. for å referere til flettefelt fra CSV (kolonne 2, 3, ...).
+      </div>
+      <textarea id="melding" name="melding" rows="10" required placeholder="&lt;p&gt;Hei, du skylder &lt;strong&gt;${1}&lt;/strong&gt; kr.&lt;/p&gt;"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="csv">Mottakere (CSV)</label>
+      <div class="hint">
+        Én mottaker per linje: <code>fødselsnummer,flettefelt1,flettefelt2,...</code><br />
+        Linjer som starter med <code>#</code> ignoreres.
+      </div>
+      <textarea id="csv" name="csv" rows="8" required placeholder="12345678901,5000&#10;98765432100,2500"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="btn-preview">Forhåndsvis PDF (første rad)</button>
+      <button type="submit">Send brev</button>
+    </div>
+  </form>
+
+  <div id="status"></div>
+</div>
+
+<script>
+  const form = document.getElementById('form');
+  const statusEl = document.getElementById('status');
+
+  function visStatus(melding, type, feil) {
+    statusEl.className = type;
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = melding;
+    if (feil && feil.length > 0) {
+      const ul = document.createElement('ul');
+      ul.className = 'feil';
+      feil.forEach(f => {
+        const li = document.createElement('li');
+        li.textContent = f;
+        ul.appendChild(li);
+      });
+      statusEl.appendChild(ul);
+    }
+    statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function skjulStatus() {
+    statusEl.style.display = 'none';
+    statusEl.className = '';
+    statusEl.innerHTML = '';
+  }
+
+  function samlFormData() {
+    const data = new FormData();
+    data.append('tittel', document.getElementById('tittel').value);
+    data.append('brevkode', document.getElementById('brevkode').value);
+    data.append('melding', document.getElementById('melding').value);
+    data.append('csv', document.getElementById('csv').value);
+    return data;
+  }
+
+  document.getElementById('btn-preview').addEventListener('click', async () => {
+    skjulStatus();
+    const data = samlFormData();
+
+    try {
+      const resp = await fetch('/forhåndsvis', { method: 'POST', body: new URLSearchParams(data) });
+      if (!resp.ok) {
+        const tekst = await resp.text();
+        visStatus('Kunne ikke generere forhåndsvisning: ' + tekst, 'error');
+        return;
+      }
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      visStatus('Nettverksfeil: ' + err.message, 'error');
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    skjulStatus();
+
+    const csvTekst = document.getElementById('csv').value.trim();
+    const antallLinjer = csvTekst.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;
+
+    const bekreft = confirm(`Du er i ferd med å sende brev til ${antallLinjer} mottaker(e). Vil du fortsette?`);
+    if (!bekreft) return;
+
+    visStatus('Sender brev…', 'info');
+
+    const data = samlFormData();
+
+    try {
+      const resp = await fetch('/send', { method: 'POST', body: new URLSearchParams(data) });
+      const tekst = await resp.text();
+
+      if (!resp.ok) {
+        visStatus('Feil: ' + tekst, 'error');
+        return;
+      }
+
+      const resultat = JSON.parse(tekst);
+      if (resultat.antallFeilet === 0) {
+        visStatus(`✓ Sendt ${resultat.antallSendt} brev uten feil.`, 'success');
+      } else {
+        visStatus(
+          `Sendt ${resultat.antallSendt} brev. ${resultat.antallFeilet} feilet:`,
+          'error',
+          resultat.feil
+        );
+      }
+    } catch (err) {
+      visStatus('Nettverksfeil: ' + err.message, 'error');
+    }
+  });
+</script>
+</body>
+</html>
