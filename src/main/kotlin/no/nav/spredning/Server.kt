@@ -14,11 +14,18 @@ import io.ktor.server.routing.*
 
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
+import java.util.Base64
 
 private val logger = LoggerFactory.getLogger("spredning.Server")
 private val TEAM_LOG = MarkerFactory.getMarker("TEAM_LOGS")
 
 private val objectMapper = jacksonObjectMapper()
+
+private fun navIdentFraToken(authHeader: String): String {
+    val payload = authHeader.removePrefix("Bearer ").split(".")[1]
+    val json = String(Base64.getUrlDecoder().decode(payload))
+    return objectMapper.readTree(json).get("NAVident")!!.asText()
+}
 
 data class SendRequest(
     val tittel: String,
@@ -82,6 +89,9 @@ fun startServer(port: Int = 8080) {
                 req.validate()
                 val mottakere = req.parseMottakere()
 
+                val authorizationHeader = call.request.header("Authorization")!!
+                val navIdent = navIdentFraToken(authorizationHeader)
+
                 var antallSendt = 0
                 val feil = mutableListOf<String>()
 
@@ -91,12 +101,12 @@ fun startServer(port: Int = 8080) {
                         val journalpostId = dokarkivKlient.journalfør(mottaker, pdfBytes, req.tittel, req.brevkode)
                         val bestillingsId = dokdistKlient.distribuer(journalpostId)
                         antallSendt++
-                        logger.info(TEAM_LOG, "Sendt brev til {} — journalpostId={} bestillingsId={}", {mottaker.fnr}, journalpostId, bestillingsId)
+                        logger.info(TEAM_LOG, "Sendt brev til {} av {} — journalpostId={} bestillingsId={}", mottaker.fnr, navIdent, journalpostId, bestillingsId)
                     } catch (e: MottakerErDødException) {
-                        logger.warn(TEAM_LOG, "Feilet sending til {} — mottaker er registrert død: {}", {mottaker.fnr}, e.message)
+                        logger.warn(TEAM_LOG, "Feilet sending til {} av {} — mottaker er registrert død: {}", mottaker.fnr, navIdent, e.message)
                         feil.add("${mottaker.fnr}: mottaker er registrert død")
                     } catch (e: Exception) {
-                        logger.error(TEAM_LOG, "Feilet sending til {}: {}", {mottaker.fnr}, e.message)
+                        logger.error(TEAM_LOG, "Feilet sending til {} av {}: {}", mottaker.fnr, navIdent, e.message)
                         feil.add("${mottaker.fnr}: ${e.message}")
                     }
                 }
