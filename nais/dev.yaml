@@ -43,3 +43,5 @@ spec:
         - application: dokdistfordeling
           namespace: teamdokumenthandtering
           cluster: dev-fss
+        - application: logging
+          namespace: nais-system
