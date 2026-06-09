@@ -7,7 +7,7 @@ spec:
   image: {{image}}
   port: 8080
   ingresses:
-    - https://spredning.intern.nav.no
+    - https://spredning.intern.dev.nav.no
   liveness:
     path: /isAlive
   readiness:
