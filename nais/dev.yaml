@@ -24,6 +24,7 @@ spec:
           - id: 9046ac9d-bb00-47dc-bcfb-e5221bf8d7f9 # tbd
     sidecar:
       enabled: true
+      autoLogin: true
   env:
     - name: DOKARKIV_URL
       value: https://dokarkiv-q2.dev-fss-pub.nais.io
