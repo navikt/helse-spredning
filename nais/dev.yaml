@@ -4,6 +4,9 @@ metadata:
   name: spredning
   namespace: tbd
 spec:
+  replicas:
+    max: 1
+    min: 1
   image: {{image}}
   port: 8080
   ingresses:
