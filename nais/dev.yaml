@@ -4,6 +4,7 @@ metadata:
   name: spredning
   namespace: tbd
 spec:
+  image: {{image}}
   port: 8080
   ingresses:
     - https://spredning.intern.nav.no
