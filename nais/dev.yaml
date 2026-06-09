@@ -14,13 +14,13 @@ spec:
   azure:
     application:
       enabled: true
-      tenant: nav.no
+      tenant: trygdeetaten.no
       allowAllUsers: false
       claims:
         extra:
           - NAVident
         groups:
-          - id: f787f900-6697-440d-a086-d5bb56e26a9c # tbd
+          - id: 9046ac9d-bb00-47dc-bcfb-e5221bf8d7f9 # tbd
     sidecar:
       enabled: true
   env:
