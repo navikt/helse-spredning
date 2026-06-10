@@ -25,7 +25,7 @@ class NaisTokenKlient(
         .connectTimeout(Duration.ofSeconds(5))
         .build()
 
-    fun hentToken(target: String): NaisToken {
+    fun hentToken(target: String): String {
         val body = """{"identity_provider":"entra_id","target":"$target"}"""
 
         val request = HttpRequest.newBuilder()
@@ -39,6 +39,6 @@ class NaisTokenKlient(
         check(response.statusCode() == 200) {
             "Nais token-forespørsel feilet: ${response.statusCode()} ${response.body()}"
         }
-        return objectMapper.readValue(response.body())
+        return objectMapper.readValue<NaisToken>(response.body()).accessToken
     }
 }
