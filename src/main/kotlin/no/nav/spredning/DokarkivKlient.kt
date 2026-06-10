@@ -1,5 +1,6 @@
 package no.nav.spredning
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.net.URI
@@ -49,6 +50,7 @@ data class DokumentVariant(
     val fysiskDokument: String, // base64-encoded PDF
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class OpprettJournalpostResponse(
     val journalpostId: String,
     val journalpostferdigstilt: Boolean,
