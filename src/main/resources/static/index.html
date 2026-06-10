@@ -214,6 +214,8 @@
     const bekreft = confirm(`Du er i ferd med å sende brev til ${antallLinjer} mottaker(e). Vil du fortsette?`);
     if (!bekreft) return;
 
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
     visStatus('Sender brev…', 'info');
 
     try {
@@ -241,6 +243,8 @@
       }
     } catch (err) {
       visStatus('Nettverksfeil: ' + err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 </script>
