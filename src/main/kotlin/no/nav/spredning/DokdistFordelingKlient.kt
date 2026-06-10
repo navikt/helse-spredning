@@ -14,8 +14,8 @@ data class DistribuerJournalpostRequest(
     val journalpostId: String,
     val bestillendeFagsystem: String = "SPEIL",
     val dokumentProdApp: String = "spredning",
-    val distribusjonstype: String = "VIKTIG",
-    val distribusjonstidspunkt: String = "KJERNETID",
+    val distribusjonstype: String = "ANNET",
+    val distribusjonstidspunkt: String = "UMIDDELBART",
 )
 
 data class DistribuerJournalpostResponse(

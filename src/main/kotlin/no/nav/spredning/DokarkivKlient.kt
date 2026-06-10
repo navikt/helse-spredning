@@ -39,7 +39,7 @@ data class Sak(
 data class Dokument(
     val tittel: String,
     val brevkode: String,
-    val dokumentKategori: String = "BREV",
+    val dokumentKategori: String = "IB", // https://github.com/navikt/dokarkiv/blob/3b7c8c116429d13c2b1293796e504129193646f4/core/src/main/java/no/nav/dokarkiv/core/domain/codes/DokumentKategoriCode.java#L51
     val dokumentvarianter: List<DokumentVariant>,
 )
 
