@@ -11,19 +11,17 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
-import java.util.*
+import java.util.Base64
 
 private val logger = LoggerFactory.getLogger("spredning.Server")
 private val TEAM_LOG = MarkerFactory.getMarker("TEAM_LOGS")
 
 private val objectMapper = jacksonObjectMapper()
 
-val isDevelopment = System.getenv("NAIS_CLUSTER_NAME") == null
-
 private fun navIdentFraToken(authHeader: String): String {
-    if (isDevelopment) return "A666666"
     val payload = authHeader.removePrefix("Bearer ").split(".")[1]
     val json = String(Base64.getUrlDecoder().decode(payload))
     return objectMapper.readTree(json).get("NAVident")!!.asText()
@@ -91,7 +89,7 @@ fun startServer(port: Int = 8080) {
                 req.validate()
                 val mottakere = req.parseMottakere()
 
-                val authorizationHeader = if (isDevelopment) "en header" else call.request.header("Authorization")!!
+                val authorizationHeader = call.request.header("Authorization")!!
                 val navIdent = navIdentFraToken(authorizationHeader)
                 logger.debug("Forbereder brevsending til ${mottakere.size} mottaker(e), NAVIdent: $navIdent")
 
