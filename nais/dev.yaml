@@ -40,11 +40,8 @@ spec:
   accessPolicy:
     outbound:
       rules:
-        - application: dokarkiv
-          namespace: teamdokumenthandtering
-          cluster: dev-fss
-        - application: dokdistfordeling
-          namespace: teamdokumenthandtering
-          cluster: dev-fss
         - application: logging
           namespace: nais-system
+    external:
+      - dokarkiv-q2.dev-fss-pub.nais.io
+      - dokdistfordeling.dev-fss-pub.nais.io
