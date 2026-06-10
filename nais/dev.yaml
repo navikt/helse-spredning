@@ -42,6 +42,6 @@ spec:
       rules:
         - application: logging
           namespace: nais-system
-    external:
-      - host: dokarkiv-q2.dev-fss-pub.nais.io
-      - host: dokdistfordeling.dev-fss-pub.nais.io
+      external:
+        - host: dokarkiv-q2.dev-fss-pub.nais.io
+        - host: dokdistfordeling.dev-fss-pub.nais.io
