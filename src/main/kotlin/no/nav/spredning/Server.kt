@@ -110,7 +110,7 @@ fun startServer(port: Int = 8080) {
                         feil.add("${mottaker.fnr}: mottaker er registrert død")
                     } catch (e: Exception) {
                         logger.error("Sending av brev feilet, se team logs for detaljer")
-                        logger.error(TEAM_LOG, "Sending av brev til fødselsnummer ${mottaker.fnr} feilet", e)
+                        logger.error(TEAM_LOG, "Sending av brev til fødselsnummer ${mottaker.fnr} feilet: ${e.message}", e)
                         feil.add("${mottaker.fnr}: ${e.message}")
                     }
                 }
