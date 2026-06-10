@@ -91,6 +91,7 @@ fun startServer(port: Int = 8080) {
 
                 val authorizationHeader = call.request.header("Authorization")!!
                 val navIdent = navIdentFraToken(authorizationHeader)
+                logger.debug("Forbereder brevsending til ${mottakere.size} mottaker(e), NAVIdent: $navIdent")
 
                 var antallSendt = 0
                 val feil = mutableListOf<String>()
@@ -98,15 +99,18 @@ fun startServer(port: Int = 8080) {
                 for (mottaker in mottakere) {
                     try {
                         val pdfBytes = PdfGenerator.generer(mottaker, req.tittel, req.melding)
+                        logger.debug(TEAM_LOG, "Journalfører dokument for ${mottaker.fnr}")
                         val journalpostId = dokarkivKlient.journalfør(mottaker, pdfBytes, req.tittel, req.brevkode)
+                        logger.debug(TEAM_LOG, "Ber om distribusjon av dokument for ${mottaker.fnr}")
                         val bestillingsId = dokdistKlient.distribuer(journalpostId)
                         antallSendt++
-                        logger.info(TEAM_LOG, "Sendt brev til {} av {} — journalpostId={} bestillingsId={}", mottaker.fnr, navIdent, journalpostId, bestillingsId)
+                        logger.info(TEAM_LOG, "Sendt brev til {} av {} — journalpostId={} bestillingsId={}. $antallSendt av ${mottakere.size} sendt.", mottaker.fnr, navIdent, journalpostId, bestillingsId)
                     } catch (e: MottakerErDødException) {
                         logger.warn(TEAM_LOG, "Feilet sending til {} av {} — mottaker er registrert død: {}", mottaker.fnr, navIdent, e.message)
                         feil.add("${mottaker.fnr}: mottaker er registrert død")
                     } catch (e: Exception) {
-                        logger.error(TEAM_LOG, "Feilet sending til {} av {}: {}", mottaker.fnr, navIdent, e.message)
+                        logger.error("Sending av brev feilet, se team logs for detaljer")
+                        logger.error(TEAM_LOG, "Sending av brev til fødselsnummer ${mottaker.fnr} feilet", e)
                         feil.add("${mottaker.fnr}: ${e.message}")
                     }
                 }

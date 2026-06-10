@@ -90,8 +90,8 @@ class DokarkivKlient(
             .build()
 
         val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
-        check(response.statusCode() in listOf(200, 201, 409)) {
-            "Journalføring feilet: ${response.statusCode()} ${response.body()}"
+        check(response.statusCode() in 200..299) {
+            "Journalføring feilet, statuskode${response.statusCode()}, respons:\n${response.body()}"
         }
         val respBody = objectMapper.readValue<OpprettJournalpostResponse>(response.body())
         check(respBody.journalpostferdigstilt) {
