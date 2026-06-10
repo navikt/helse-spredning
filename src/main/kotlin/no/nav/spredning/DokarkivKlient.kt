@@ -14,6 +14,7 @@ private val objectMapper = jacksonObjectMapper()
 
 data class OpprettJournalpostRequest(
     val journalposttype: String = "UTGAAENDE",
+    val journalfoerendeEnhet: String = "9999",
     val tema: String = "SYK",
     val tittel: String,
     val avsenderMottaker: AvsenderMottaker,
