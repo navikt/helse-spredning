@@ -8,6 +8,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 
 private val objectMapper = jacksonObjectMapper()
 
@@ -20,7 +21,9 @@ data class NaisToken(
 class NaisTokenKlient(
     private val tokenEndpoint: String = requireEnv("NAIS_TOKEN_ENDPOINT"),
 ) {
-    private val httpClient = HttpClient.newHttpClient()
+    private val httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(5))
+        .build()
 
     fun hentToken(target: String): NaisToken {
         val body = """{"identity_provider":"entra_id","target":"$target"}"""
@@ -28,6 +31,7 @@ class NaisTokenKlient(
         val request = HttpRequest.newBuilder()
             .uri(URI.create(tokenEndpoint))
             .header("Content-Type", "application/json")
+            .timeout(Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
 

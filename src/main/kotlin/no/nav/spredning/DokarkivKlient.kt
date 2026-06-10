@@ -6,6 +6,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 import java.util.*
 
 private val objectMapper = jacksonObjectMapper()
@@ -58,7 +59,9 @@ class DokarkivKlient(
     private val dokarkivTarget: String = requireEnv("DOKARKIV_TARGET"),
     private val tokenKlient: NaisTokenKlient,
 ) {
-    private val httpClient = HttpClient.newHttpClient()
+    private val httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(5))
+        .build()
 
     fun journalfør(mottaker: Mottaker, pdfBytes: ByteArray, tittel: String, brevkode: String): String {
         val base64Pdf = Base64.getEncoder().encodeToString(pdfBytes)
@@ -86,6 +89,7 @@ class DokarkivKlient(
             .uri(URI.create("$dokarkivUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer $token")
+            .timeout(Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
 

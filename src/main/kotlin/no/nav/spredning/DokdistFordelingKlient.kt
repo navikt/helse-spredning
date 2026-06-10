@@ -1,12 +1,12 @@
 package no.nav.spredning
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 
 private val objectMapper = jacksonObjectMapper()
 
@@ -27,7 +27,9 @@ class DokdistFordelingKlient(
     private val dokdistTarget: String = requireEnv("DOKDISTFORDELING_TARGET"),
     private val tokenKlient: NaisTokenKlient,
 ) {
-    private val httpClient = HttpClient.newHttpClient()
+    private val httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(5))
+        .build()
 
     fun distribuer(journalpostId: String): String {
         val token = tokenKlient.hentToken(dokdistTarget)
@@ -39,6 +41,7 @@ class DokdistFordelingKlient(
             .uri(URI.create("$dokdistUrl/rest/v1/distribuerjournalpost"))
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer $token")
+            .timeout(Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
 
