@@ -25,7 +25,7 @@
         </filter>
     </appender>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="default-json" />
         <appender-ref ref="team-logs" />
     </root>
