@@ -15,6 +15,10 @@ spec:
     path: /isAlive
   readiness:
     path: /isReady
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
     application:
       enabled: true
