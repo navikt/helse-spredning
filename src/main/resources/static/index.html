@@ -81,6 +81,11 @@
 
     button[type="submit"]:hover { background: #0054a0; }
 
+    button[type="submit"]:disabled {
+      background: #7ab0e0;
+      cursor: not-allowed;
+    }
+
     #btn-preview {
       background: #f0f0f0;
       color: #333;
@@ -147,6 +152,7 @@
 <script>
   const form = document.getElementById('form');
   const statusEl = document.getElementById('status');
+  let sendingPågår = false;
 
   function visStatus(melding, type, feil) {
     statusEl.className = type;
@@ -205,6 +211,9 @@
   });
 
   form.addEventListener('submit', async (e) => {
+    if (sendingPågår) return;
+    sendingPågår = true;
+
     e.preventDefault();
     skjulStatus();
 
@@ -244,6 +253,7 @@
     } catch (err) {
       visStatus('Nettverksfeil: ' + err.message, 'error');
     } finally {
+      sendingPågår = false;
       submitBtn.disabled = false;
     }
   });
