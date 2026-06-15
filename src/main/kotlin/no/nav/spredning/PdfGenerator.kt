@@ -2,6 +2,9 @@ package no.nav.spredning
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.Base64
 
 object PdfGenerator {
     fun generer(mottaker: Mottaker, tittel: String, melding: String): ByteArray {
@@ -23,21 +26,17 @@ object PdfGenerator {
         return resultat
     }
 
-    private fun lagHtml(tittel: String, melding: String): String = """
-        <!DOCTYPE html>
-        <html lang="no">
-        <head>
-          <meta charset="UTF-8"/>
-          <style>
-            body { font-family: Arial, sans-serif; font-size: 12pt; margin: 40px; color: #222; }
-            h1 { font-size: 16pt; }
-            p { line-height: 1.6; }
-          </style>
-        </head>
-        <body>
-          <h1>$tittel</h1>
-          $melding
-        </body>
-        </html>
-    """.trimIndent()
+    private fun lagHtml(tittel: String, melding: String): String = lesHtmlTemplate()
+        .replace("\$tittel", tittel)
+        .replace("\$melding", melding)
+        .replace("\$logo", logo)
+
+    private fun lesHtmlTemplate(): String {
+        val localFile = Path.of("src/main/resources/static/pdf.htm")
+        return if (Files.exists(localFile)) localFile.toFile().readText()
+        else javaClass.getResource("/static/pdf.htm")!!.readText()
+    }
+
+    private val logo: String = javaClass.getResource("/assets/Nav-logo.png")!!.readBytes()
+        .let { Base64.getEncoder().encodeToString(it) }
 }
