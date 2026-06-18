@@ -1,0 +1,50 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: spredning
+  namespace: tbd
+spec:
+  replicas:
+    max: 1
+    min: 1
+  image: {{image}}
+  port: 8080
+  ingresses:
+    - https://spredning.intern.nav.no
+  liveness:
+    path: /isAlive
+  readiness:
+    path: /isReady
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: false
+      claims:
+        extra:
+          - NAVident
+        groups:
+          - id: f787f900-6697-440d-a086-d5bb56e26a9c # tbd
+    sidecar:
+      enabled: true
+      autoLogin: true
+  env:
+    - name: DOKARKIV_URL
+      value: https://dokarkiv.prod-fss-pub.nais.io
+    - name: DOKARKIV_TARGET
+      value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: DOKDISTFORDELING_URL
+      value: https://dokdistfordeling.prod-fss-pub.nais.io
+    - name: DOKDISTFORDELING_TARGET
+      value: api://prod-fss.teamdokumenthandtering.dokdistfordeling/.default
+  accessPolicy:
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
+      external:
+        - host: dokarkiv.prod-fss-pub.nais.io
+        - host: dokdistfordeling.prod-fss-pub.nais.io

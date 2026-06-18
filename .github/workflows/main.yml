@@ -52,3 +52,17 @@ jobs:
           CLUSTER: dev-gcp
           RESOURCE: nais/dev.yaml
           IMAGE: ${{ needs.build.outputs.image }}
+
+  deployProd:
+    name: Deploy til prod
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: nais/prod.yaml
+          IMAGE: ${{ needs.build.outputs.image }}

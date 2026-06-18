@@ -91,7 +91,7 @@ fun startServer(port: Int = 8080) {
 
                 val authorizationHeader = call.request.header("Authorization")!!
                 val navIdent = navIdentFraToken(authorizationHeader)
-                logger.debug("Forbereder brevsending til ${mottakere.size} mottaker(e), NAVIdent: $navIdent")
+                logger.debug(TEAM_LOG, "Forbereder brevsending til ${mottakere.size} mottaker(e), NAVIdent: $navIdent")
 
                 var antallSendt = 0
                 val feil = mutableListOf<String>()
