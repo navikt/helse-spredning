@@ -7,9 +7,15 @@ Laget for å kunne sende ut informasjonsbrev til personer som har fått for mye 
 Har et UI som lar en definere en mal og et sett med personer + verdier, og lager en PDF per person ved å flette verdiene
 inn i malen. 
 
-## Komme i gang
+## Teknologioversikt
 
-Standard kotlin + ktor + gradle. UI-et er en HTML-side med ren JavaScript uten rammeverk.
+Appen består av standard Kotlin og Ktor, og bygges med Gradle.
+
+UI-et er en HTML-side med ren JavaScript, ingen rammeverk.
+
+## Kjøre applikasjonen lokalt
+
+Start Main-klassen og gå til http://localhost:8080.
 
 ---
 
