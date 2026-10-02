@@ -9,7 +9,7 @@ ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotia
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-statusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 
-jackson-module-kotlin = "com.fasterxml.jackson.module:jackson-module-kotlin:2.22.0"
+jackson-module-kotlin = "com.fasterxml.jackson.module:jackson-module-kotlin:2.22.3"
 logback-classic = "ch.qos.logback:logback-classic:1.6.4"
 logstash-logback-encoder = "net.logstash.logback:logstash-logback-encoder:9.0"
 openhtmltopdf-pdfbox = "com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10"
