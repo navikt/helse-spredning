@@ -1,0 +1,28 @@
+[versions]
+ktor = "3.6.0"
+sykepengerGradlePlugins = "20261001.1830"
+
+[libraries]
+ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-statusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+
+jackson-module-kotlin = "com.fasterxml.jackson.module:jackson-module-kotlin:2.22.0"
+logback-classic = "ch.qos.logback:logback-classic:1.5.34"
+logstash-logback-encoder = "net.logstash.logback:logstash-logback-encoder:9.0"
+openhtmltopdf-pdfbox = "com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10"
+pdfbox = "org.apache.pdfbox:pdfbox:2.0.31"
+
+[bundles]
+ktor-server = [
+    "ktor-serialization-jackson",
+    "ktor-server-cio",
+    "ktor-server-contentNegotiation",
+    "ktor-server-core",
+    "ktor-server-statusPages"
+]
+
+[plugins]
+sykepenger-deployable = { id = "no.nav.sykepenger.deployable", version.ref = "sykepengerGradlePlugins" }
