@@ -21,19 +21,23 @@ data class NaisToken(
 class NaisTokenKlient(
     private val tokenEndpoint: String = requireEnv("NAIS_TOKEN_ENDPOINT"),
 ) {
-    private val httpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build()
+    private val httpClient =
+        HttpClient
+            .newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()
 
     fun hentToken(target: String): String {
         val body = """{"identity_provider":"entra_id","target":"$target"}"""
 
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(tokenEndpoint))
-            .header("Content-Type", "application/json")
-            .timeout(Duration.ofSeconds(30))
-            .POST(HttpRequest.BodyPublishers.ofString(body))
-            .build()
+        val request =
+            HttpRequest
+                .newBuilder()
+                .uri(URI.create(tokenEndpoint))
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build()
 
         val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
         check(response.statusCode() == 200) {

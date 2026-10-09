@@ -62,39 +62,51 @@ class DokarkivKlient(
     private val dokarkivTarget: String = requireEnv("DOKARKIV_TARGET"),
     private val tokenKlient: NaisTokenKlient,
 ) {
-    private val httpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build()
+    private val httpClient =
+        HttpClient
+            .newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()
 
-    fun journalfør(mottaker: Mottaker, pdfBytes: ByteArray, tittel: String, brevkode: String): String {
+    fun journalfør(
+        mottaker: Mottaker,
+        pdfBytes: ByteArray,
+        tittel: String,
+        brevkode: String,
+    ): String {
         val base64Pdf = Base64.getEncoder().encodeToString(pdfBytes)
 
-        val request = OpprettJournalpostRequest(
-            avsenderMottaker = AvsenderMottaker(id = mottaker.fnr),
-            bruker = Bruker(id = mottaker.fnr),
-            tittel = tittel,
-            eksternReferanseId = "spredning-${mottaker.fnr}",
-            dokumenter = listOf(
-                Dokument(
-                    tittel = tittel,
-                    brevkode = brevkode,
-                    dokumentvarianter = listOf(
-                        DokumentVariant(fysiskDokument = base64Pdf),
+        val request =
+            OpprettJournalpostRequest(
+                avsenderMottaker = AvsenderMottaker(id = mottaker.fnr),
+                bruker = Bruker(id = mottaker.fnr),
+                tittel = tittel,
+                eksternReferanseId = "spredning-${mottaker.fnr}",
+                dokumenter =
+                    listOf(
+                        Dokument(
+                            tittel = tittel,
+                            brevkode = brevkode,
+                            dokumentvarianter =
+                                listOf(
+                                    DokumentVariant(fysiskDokument = base64Pdf),
+                                ),
+                        ),
                     ),
-                ),
-            ),
-        )
+            )
 
         val token = tokenKlient.hentToken(dokarkivTarget)
         val body = objectMapper.writeValueAsString(request)
 
-        val httpRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$dokarkivUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer $token")
-            .timeout(Duration.ofSeconds(30))
-            .POST(HttpRequest.BodyPublishers.ofString(body))
-            .build()
+        val httpRequest =
+            HttpRequest
+                .newBuilder()
+                .uri(URI.create("$dokarkivUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer $token")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build()
 
         val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
         check(response.statusCode() in 200..299 || response.statusCode() == 409) {

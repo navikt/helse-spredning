@@ -11,7 +11,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.util.Base64
@@ -115,11 +114,12 @@ fun startServer(port: Int = 8080) {
                     }
                 }
 
-                val resultat = SendResultat(
-                    antallSendt = antallSendt,
-                    antallFeilet = feil.size,
-                    feil = feil,
-                )
+                val resultat =
+                    SendResultat(
+                        antallSendt = antallSendt,
+                        antallFeilet = feil.size,
+                        feil = feil,
+                    )
                 call.respond(HttpStatusCode.OK, objectMapper.writeValueAsString(resultat))
             }
         }

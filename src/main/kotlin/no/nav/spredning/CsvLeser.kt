@@ -1,10 +1,14 @@
 package no.nav.spredning
 
-data class Mottaker(val fnr: String, val flettefelt: List<String>)
+data class Mottaker(
+    val fnr: String,
+    val flettefelt: List<String>,
+)
 
 object CsvLeser {
-    fun les(csvTekst: String): List<Mottaker> {
-        return csvTekst.lines()
+    fun les(csvTekst: String): List<Mottaker> =
+        csvTekst
+            .lines()
             .mapIndexed { index, linje -> index + 1 to linje }
             .filter { (_, linje) -> linje.isNotBlank() && !linje.startsWith("#") }
             .map { (linjenummer, linje) ->
@@ -16,5 +20,4 @@ object CsvLeser {
                 }
                 Mottaker(fnr = fnr, flettefelt = deler.drop(1))
             }
-    }
 }

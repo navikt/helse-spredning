@@ -27,23 +27,28 @@ class DokdistFordelingKlient(
     private val dokdistTarget: String = requireEnv("DOKDISTFORDELING_TARGET"),
     private val tokenKlient: NaisTokenKlient,
 ) {
-    private val httpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build()
+    private val httpClient =
+        HttpClient
+            .newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()
 
     fun distribuer(journalpostId: String): String {
         val token = tokenKlient.hentToken(dokdistTarget)
-        val body = objectMapper.writeValueAsString(
-            DistribuerJournalpostRequest(journalpostId = journalpostId)
-        )
+        val body =
+            objectMapper.writeValueAsString(
+                DistribuerJournalpostRequest(journalpostId = journalpostId),
+            )
 
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("$dokdistUrl/rest/v1/distribuerjournalpost"))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer $token")
-            .timeout(Duration.ofSeconds(30))
-            .POST(HttpRequest.BodyPublishers.ofString(body))
-            .build()
+        val request =
+            HttpRequest
+                .newBuilder()
+                .uri(URI.create("$dokdistUrl/rest/v1/distribuerjournalpost"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer $token")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build()
 
         val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
 
@@ -55,4 +60,6 @@ class DokdistFordelingKlient(
     }
 }
 
-class MottakerErDødException(message: String) : RuntimeException(message)
+class MottakerErDødException(
+    message: String,
+) : RuntimeException(message)
