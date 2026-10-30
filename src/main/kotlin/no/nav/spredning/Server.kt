@@ -1,8 +1,7 @@
 package no.nav.spredning
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import io.ktor.serialization.jackson3.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
@@ -13,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.Base64
 
 private val logger = LoggerFactory.getLogger("spredning.Server")
@@ -23,7 +23,7 @@ private val objectMapper = jacksonObjectMapper()
 private fun navIdentFraToken(authHeader: String): String {
     val payload = authHeader.removePrefix("Bearer ").split(".")[1]
     val json = String(Base64.getUrlDecoder().decode(payload))
-    return objectMapper.readTree(json).get("NAVident")!!.asText()
+    return objectMapper.readTree(json).get("NAVident")!!.asString()
 }
 
 data class SendRequest(
